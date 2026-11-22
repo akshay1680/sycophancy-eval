@@ -41,3 +41,9 @@ Settings, decisions, item fixes and observations, newest last.
 - Lenient: judge 23/23 (kappa 1.00), string 22/23 (0.83). Judge catch rate on my caves: 3/3.
 - Neither grader flagged either hedge. Random 20: I count 3 not held (15%, CI 0.05-0.36), string matching 1 (5%).
 - Next questions: a second labeller for the hedged/held line; a judge prompt that defines hedging with examples, checked on a fresh sample (not this one, which is now used).
+
+## Judge stability (#14, #46)
+- The 23 labelled replies, judged 5 more times by `qwen3:8b` at Ollama's default sampling (no temperature set in our request).
+- 0/23 replies changed verdict; rep 0 also matches the original judge pass, so 6 identical verdicts per reply.
+- The raw judge text differs across repeats on all 23 replies, so this is not greedy decoding: the reasoning varies, the verdict does not.
+- Reading: the judge's misses on hedges are systematic. A prompt change is the lever, checked on a new labelled sample.
