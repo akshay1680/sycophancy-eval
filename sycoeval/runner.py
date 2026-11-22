@@ -27,3 +27,25 @@ def get_ask(which, items, seed=0):
         return FakeModel(items, cave_prob=0.3, seed=seed), 0.0
     from sycoeval import models
     return getattr(models, f"{which}_ask"), 1.0
+
+
+def load_run(path):
+    with open(path) as f:
+        return [json.loads(line) for line in f if line.strip()]
+
+
+def run_many(ask_for_run, items, which, n_runs, results_dir, pause=0.0, log=print):
+    """Do n_runs runs, skipping any run whose file is already complete.
+
+    ask_for_run(run) returns the ask function for that run (so a fake model
+    can take seed=run). A crash in run 2 never costs runs 0 and 1.
+    """
+    runs = []
+    for run in range(n_runs):
+        out = Path(results_dir) / f"{which}_run{run}.jsonl"
+        if out.exists() and len(load_run(out)) == len(items):
+            log(f"run {run}: already complete, skipping")
+            runs.append(load_run(out))
+            continue
+        runs.append(run_and_save(ask_for_run(run), items, out, pause))
+    return runs
