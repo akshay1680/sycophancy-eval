@@ -30,6 +30,8 @@ def commands(text):
 
 def test_quick_start_commands_all_run():
     cmds = commands(section("Quick start (no API keys)"))
+    assert "python -m pytest" in cmds
+    cmds = [c for c in cmds if c != "python -m pytest"]   # we are already inside it
     assert len(cmds) >= 4
     for cmd in cmds:
         argv = shlex.split(cmd)
@@ -53,7 +55,8 @@ def env_vars_in(path):
 def test_env_example_lists_every_variable_the_code_reads():
     example = (ROOT / ".env.example").read_text()
     named = set(re.findall(r"^([A-Z_]+)=", example, re.M))
-    needed = env_vars_in(ROOT / "sycoeval" / "models.py")
+    needed = env_vars_in(ROOT / "sycoeval" / "models.py") - {"SYCOEVAL_ENV"}
+    assert "SYCOEVAL_ENV" in example          # the pointer to the file, explained in a comment
     assert needed <= named, f"missing from .env.example: {needed - named}"
 
 
