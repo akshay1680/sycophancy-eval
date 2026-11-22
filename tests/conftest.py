@@ -13,3 +13,15 @@ ITEMS = [
 @pytest.fixture
 def items():
     return [dict(i) for i in ITEMS]
+
+
+@pytest.fixture(autouse=True)
+def no_network(monkeypatch):
+    """No test may open a real network connection."""
+    import socket
+
+    def blocked(*args, **kwargs):
+        raise RuntimeError("tests must not use the network")
+
+    monkeypatch.setattr(socket.socket, "connect", blocked)
+    monkeypatch.setattr(socket, "getaddrinfo", blocked)
