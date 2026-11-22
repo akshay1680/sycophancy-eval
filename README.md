@@ -6,7 +6,7 @@ That gives two questions:
 1. **About the model:** how often does it drop a correct answer under pushback, and how stable is that number across runs?
 2. **About the measurement (the main one):** string matching mislabels replies, and an LLM judge is itself a model. Can the judge's labels be trusted, and does it give the same label twice? Most eval numbers rest on an automated grader, so the grader needs testing too, the same way a flaky test runner makes every test report suspect.
 
-> **Status:** pipeline, results and the judge check against blind hand labels are done. **The judge did not clear the bar set in advance**, so string matching stays the headline grader (see [below](#can-we-trust-the-judge)). Judge stability is next ([roadmap](#roadmap)).
+> **Status:** pipeline, results and the judge check against blind hand labels are done. **The judge did not clear the bar set in advance**, so string matching stays the headline grader (see [below](#can-we-trust-the-judge)). The judge is also perfectly stable on repeats, which makes its hedge blind spot systematic, not noise.
 
 ## Results so far
 
@@ -57,6 +57,25 @@ judge catch rate on your caves: 3/3
 - **On outright caves the judge is right every time:** 3 of 3 caught, and on the lenient view (caved or not) it agrees with me on 23 of 23, against 22 of 23 for string matching.
 - **Neither grader sees hedging.** I labelled 2 replies `hedged` (one terse, one "it depends how you measure"); both graders called them held. On the 20 random replies I count 3 not held (15%, 95% CI 0.05-0.36) where string matching counts 1 (5%). If that holds up, **both automatic graders understate the strict flip rate**, which is the most useful finding here.
 - **Limits:** one labeller, 23 replies, one judge, one model. A second labeller would show how much of the hedged/held line is judgement rather than error.
+
+### Does the judge give the same label twice?
+
+The same 23 replies, judged 5 more times at Ollama's default sampling for `qwen3:8b` (we set no temperature). `python -m sycoeval.stability ollama qwen3:8b 5`; the repeats are in [`runs/gemma4-e2b/stability/`](runs/gemma4-e2b/stability/), and a test checks this block against them:
+
+```
+0/23 replies got more than one label over 5 repeats
+  hand label caved   0/3 changed
+  hand label hedged  0/2 changed
+  hand label held    0/17 changed
+  hand label other   0/1 changed
+```
+
+![Share of replies whose judge label changed, by hand label: 0 in every group](runs/gemma4-e2b/stability/ollama-qwen3-8b/stability.svg)
+
+- **Not a temperature-0 artefact.** The judge's written reason differs between repeats on all 23 replies, so it is sampling; only the verdict stays put. Counting the original pass, that is 6 identical verdicts per reply.
+- **So the judge's errors are systematic, not noise.** Both hedges got `held` all 6 times. Re-running or majority-voting this judge would not fix them; a better prompt (a definition of hedging, with examples) might, and needs a fresh labelled sample to check.
+- **The noise in the flip rate is the model's.** With a grader this stable, the run-to-run differences above (0, 2, 2 flips) come from `gemma4:e2b`, not from grading.
+- Hypothesis from #14 ("instability sits on hedges") is not supported: there was no instability anywhere. Only 2 hedges were in the sample, so this is weak evidence either way.
 
 ## Quick start (no API keys)
 
@@ -120,7 +139,7 @@ The project was first built as daily study sessions, then rebuilt here from scra
 1. **Foundations:** one item, a fake model, a number with an interval; then real models behind one `ask()`.
 2. **Measuring properly:** a frozen 50-item set, 3 resumable runs, a report that shows the noise.
 3. **An LLM as judge:** a judge prompt and a parser that never crashes; re-grading saved runs.
-4. **Can we trust the judge?** A frozen, blind-labelled sample and a bar set in advance. The judge missed it.
+4. **Can we trust the judge?** A frozen, blind-labelled sample and a bar set in advance. The judge missed it, and is stable on repeats.
 5. **Write-up** *(next)*
 
 Issues are labelled `retold` (rebuilt from the original sessions) or `new`.
@@ -129,7 +148,6 @@ Issues are labelled `retold` (rebuilt from the original sessions) or `new`.
 
 | Next | Question |
 |---|---|
-| [#14](../../issues/14) | Does the judge give the same reply the same label twice? |
 | [#15](../../issues/15) | Do the findings hold on 80 items? |
 | Later ([#17](../../issues/17)–[#20](../../issues/20)) | Judge quotes its evidence; length and politeness bias; a panel of 3 judges; pass^k reliability |
 

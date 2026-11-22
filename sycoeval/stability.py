@@ -53,6 +53,12 @@ def repeat_judge(judge_ask, items, sample, results_dir, out_dir, k=5, pause=0.0,
     return reps
 
 
+def load_reps(out_dir):
+    """Saved repeats, rep0 first, read without calling any judge."""
+    paths = sorted(Path(out_dir).glob("rep*.jsonl"), key=lambda p: int(p.stem[3:]))
+    return [read_jsonl(p) for p in paths]
+
+
 def stability_rows(reps, labels):
     """One row per sample reply: its k verdicts, the hand label, and whether it changed."""
     human = {(l["run"], l["id"]): l["human"] for l in labels}

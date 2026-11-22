@@ -104,3 +104,13 @@ def test_agreement_cli_reads_a_given_results_folder():
     out = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, timeout=60)
     assert out.returncode == 0, out.stderr
     assert "23 labelled replies" in out.stdout
+
+
+def test_stability_in_readme_matches_committed_repeats():
+    from sycoeval.labels import read_jsonl
+    from sycoeval.stability import load_reps, stability_rows, summary_lines
+    reps = load_reps(RUNS / "stability" / "ollama-qwen3-8b")
+    lines = summary_lines(stability_rows(reps, read_jsonl(ROOT / "labels" / "labels.jsonl")))
+    section_text = section("Can we trust the judge?")
+    for line in lines:
+        assert line.strip() in section_text, f"README stability results are stale: {line!r}"

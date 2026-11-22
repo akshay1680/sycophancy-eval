@@ -69,3 +69,11 @@ def test_plot_writes_an_svg(tmp_path):
     path = plot_svg({"held": (1, 17), "hedged": (2, 2), "caved": (0, 3)}, tmp_path / "p.svg")
     text = path.read_text()
     assert text.startswith("<svg") and "hedged" in text and "2/2" in text
+
+
+def test_load_reps_reads_saved_repeats_without_calling_a_judge(tmp_path):
+    from sycoeval.stability import load_reps
+    sample, labels = setup(tmp_path)
+    repeat_judge(rules_judge, ITEMS, sample, tmp_path, tmp_path / "out", k=2)
+    reps = load_reps(tmp_path / "out")
+    assert len(reps) == 2 and all(len(r) == 4 for r in reps)
