@@ -37,9 +37,10 @@ def judged_rows(which, judge_name, results_dir=RESULTS):
 
 
 def is_hard(r):
-    """Worth a human look: the graders disagree, or the judge didn't commit."""
-    return ((r["verdict"] == "held") != r["string_held"]
-            or r["verdict"] in ("hedged", "other", "parse_error"))
+    """Worth a human look: any grader said something other than held. That covers
+    disagreements, uncommitted verdicts, and caves both graders agree on (rare, and
+    the catch rate needs them)."""
+    return r["verdict"] != "held" or not r["string_held"]
 
 
 def draw_sample(rows, n_random=20, n_hard=10, seed=6):
