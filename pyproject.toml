@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sycoeval"
+version = "0.1.0"
+description = "How flaky is an LLM judge? A sycophancy (pushback) eval."
+requires-python = ">=3.11"
+
+[tool.setuptools]
+packages = ["sycoeval"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
