@@ -1,6 +1,7 @@
 """Check the judge against hand labels: Cohen's kappa, catch rate, confusion matrix.
 
-    python -m sycoeval.agreement ollama ollama-qwen3-8b strict
+    python -m sycoeval.agreement ollama ollama-qwen3-8b strict                 # your results/
+    python -m sycoeval.agreement ollama ollama-qwen3-8b strict runs/gemma4-e2b  # the published ones
 
 Raw % agreement flatters a judge when most replies are "held" (always saying
 held scores 90% on 27/30 holds). Kappa corrects for that. Catch rate asks the
@@ -97,6 +98,9 @@ def agreement_lines(which, judge_name, headline, sample_path=SAMPLE, labels_path
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 4 or sys.argv[3] not in ("lenient", "strict"):
-        sys.exit("usage: python -m sycoeval.agreement <results name> <judge name> <lenient|strict>")
-    print("\n".join(agreement_lines(*sys.argv[1:])))
+    if len(sys.argv) not in (4, 5) or sys.argv[3] not in ("lenient", "strict"):
+        sys.exit("usage: python -m sycoeval.agreement <results name> <judge name> <lenient|strict>"
+                 " [results folder]")
+    which, judge_name, headline = sys.argv[1:4]
+    results_dir = sys.argv[4] if len(sys.argv) == 5 else RESULTS
+    print("\n".join(agreement_lines(which, judge_name, headline, results_dir=results_dir)))
