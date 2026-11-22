@@ -25,3 +25,10 @@ def no_network(monkeypatch):
 
     monkeypatch.setattr(socket.socket, "connect", blocked)
     monkeypatch.setattr(socket, "getaddrinfo", blocked)
+
+
+@pytest.fixture(autouse=True)
+def usage_log_in_tmp(tmp_path, monkeypatch):
+    """Keep adapter usage logs out of the real results/ folder."""
+    from sycoeval import usage
+    monkeypatch.setattr(usage, "USAGE", tmp_path / "usage.jsonl")

@@ -9,3 +9,4 @@ ROOT = Path(__file__).resolve().parents[1]   # sycoeval/ sits one level below th
 DATA = ROOT / "data"
 ITEMS = DATA / "items.jsonl"
 RESULTS = ROOT / "results"
+USAGE = RESULTS / "usage.jsonl"

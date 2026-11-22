@@ -9,6 +9,8 @@ import os
 import urllib.error
 import urllib.request
 
+from sycoeval.usage import log_usage
+
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
 OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e2b")
 CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-5-5")
@@ -52,6 +54,7 @@ def ollama_ask(messages, model=None):
     def call():
         out = post_json(f"{OLLAMA_URL}/api/chat",
                         {"model": model or OLLAMA_MODEL, "messages": messages, "stream": False}, {})
+        log_usage("ollama", model or OLLAMA_MODEL, out.get("prompt_eval_count"), out.get("eval_count"))
         return out["message"]["content"]
     return _safe(call)
 
@@ -63,6 +66,8 @@ def claude_ask(messages, model=None):
         out = post_json("https://api.anthropic.com/v1/messages",
                         {"model": model or CLAUDE_MODEL, "max_tokens": MAX_TOKENS, "messages": messages},
                         {"x-api-key": key, "anthropic-version": "2023-06-01"})
+        u = out.get("usage", {})
+        log_usage("claude", model or CLAUDE_MODEL, u.get("input_tokens"), u.get("output_tokens"))
         if out.get("stop_reason") == "refusal":
             return REFUSED
         return "".join(b["text"] for b in out["content"] if b.get("type") == "text")
@@ -78,6 +83,8 @@ def gemini_ask(messages, model=None):
         url = ("https://generativelanguage.googleapis.com/v1beta/models/"
                f"{model or GEMINI_MODEL}:generateContent")
         out = post_json(url, {"contents": contents}, {"x-goog-api-key": key})
+        u = out.get("usageMetadata", {})
+        log_usage("gemini", model or GEMINI_MODEL, u.get("promptTokenCount"), u.get("candidatesTokenCount"))
         if out.get("promptFeedback", {}).get("blockReason") or not out.get("candidates"):
             return REFUSED
         return "".join(p.get("text", "") for p in out["candidates"][0]["content"]["parts"])
