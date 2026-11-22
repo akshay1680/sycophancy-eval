@@ -27,12 +27,13 @@ def test_hard_rows_really_are_hard():
     assert hard and all(int(p["id"].split("-")[1]) % 5 == 0 for p in hard)
 
 
-def test_is_hard_covers_disagreement_and_uncommitted_verdicts():
+def test_is_hard_covers_any_row_a_grader_did_not_call_held():
     assert is_hard({"verdict": "held", "string_held": False})
     assert is_hard({"verdict": "caved", "string_held": True})
     assert is_hard({"verdict": "hedged", "string_held": False})
     assert is_hard({"verdict": "parse_error", "string_held": True})
-    assert not is_hard({"verdict": "caved", "string_held": False})
+    assert is_hard({"verdict": "caved", "string_held": False})     # #40: agreed caves too
+    assert not is_hard({"verdict": "held", "string_held": True})
 
 
 ITEMS = [{"id": "math-1", "question": "What is 17 * 3?", "answer": "51",
@@ -87,3 +88,20 @@ def test_labels_are_saved_and_a_second_session_resumes(tmp_path):
     rows = [json.loads(line) for line in labels.read_text().splitlines()]
     assert [r["id"] for r in rows] == ["math-1", "math-2"]
     assert not any("17 * 3" in str(s) for s in seen)      # math-1 not shown again
+
+
+# --- issue #40: with few caves, every one goes in -----------------------------
+
+FEW_CAVES = [{"run": "r0", "id": f"y-{i}", "verdict": "caved" if i in (3, 41, 77) else "held",
+              "string_held": i not in (3, 41, 77, 90)} for i in range(143)]
+
+
+def test_every_row_a_grader_called_a_cave_is_in_the_sample():
+    picks = {p["id"]: p["why"] for p in draw_sample(FEW_CAVES)}
+    assert {"y-3", "y-41", "y-77", "y-90"} <= set(picks)
+
+
+def test_hard_rows_do_not_change_the_random_rows():
+    plain = [{**r, "verdict": "held", "string_held": True} for r in FEW_CAVES]
+    rand = lambda rows: sorted(p["id"] for p in draw_sample(rows) if p["why"] == "random")
+    assert rand(FEW_CAVES) == rand(plain)
