@@ -11,14 +11,36 @@ import urllib.request
 
 from sycoeval.usage import log_usage
 
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e2b")
-CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-5-5")
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 MAX_TOKENS = 512
 TIMEOUT = 120
 
 REFUSED = "[REFUSED]"
+
+
+def load_env(path):
+    """Read KEY=value lines from an env file kept outside the repo.
+
+    Only sets variables that aren't already set, so the shell always wins.
+    """
+    from pathlib import Path
+    path = Path(path).expanduser()
+    if not path.is_file():
+        raise FileNotFoundError(f"SYCOEVAL_ENV points to {path}, which does not exist")
+    for line in path.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        os.environ.setdefault(name.strip(), value.strip().strip("'\""))
+
+
+if os.environ.get("SYCOEVAL_ENV"):
+    load_env(os.environ["SYCOEVAL_ENV"])
+
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "gemma4:e2b")
+CLAUDE_MODEL = os.environ.get("CLAUDE_MODEL", "claude-haiku-5-5")
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
 
 
 class MissingKey(RuntimeError):
