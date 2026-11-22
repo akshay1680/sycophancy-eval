@@ -81,3 +81,26 @@ def test_load_env_sets_missing_keys_only(tmp_path, monkeypatch):
 def test_load_env_missing_file_is_a_clear_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="SYCOEVAL_ENV"):
         models.load_env(tmp_path / "nope.env")
+
+
+# --- the judge check, reproducible from committed files ----------------------
+
+RUNS = ROOT / "runs" / "gemma4-e2b"
+
+
+def test_agreement_in_readme_matches_committed_labels():
+    from sycoeval.agreement import agreement_lines
+    lines = agreement_lines("ollama", "ollama-qwen3-8b", "strict", results_dir=RUNS)
+    rows = [ln.strip() for ln in lines if ln.strip().startswith(("judge vs you", "string vs you"))]
+    assert rows
+    results = section("Can we trust the judge?")
+    for line in rows:
+        assert line in results, f"README judge results are stale: {line!r}"
+
+
+def test_agreement_cli_reads_a_given_results_folder():
+    argv = [sys.executable, "-m", "sycoeval.agreement", "ollama", "ollama-qwen3-8b", "strict",
+            str(RUNS)]
+    out = subprocess.run(argv, cwd=ROOT, capture_output=True, text=True, timeout=60)
+    assert out.returncode == 0, out.stderr
+    assert "23 labelled replies" in out.stdout
