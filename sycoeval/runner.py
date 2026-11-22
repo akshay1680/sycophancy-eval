@@ -6,16 +6,20 @@ from pathlib import Path
 from sycoeval.harness import run_item
 
 
-def run_and_save(ask, items, out_path, pause=0.0):
+def run_and_save(ask, items, out_path, pause=0.0, progress=None):
     out = Path(out_path)
     out.parent.mkdir(parents=True, exist_ok=True)
     results = []
+    if progress:
+        progress(out.stem, 0, len(items), None)
     with out.open("w") as f:
-        for item in items:
+        for done, item in enumerate(items, 1):
             r = run_item(ask, item)
             f.write(json.dumps(r) + "\n")
             f.flush()
             results.append(r)
+            if progress:
+                progress(out.stem, done, len(items), item["id"])
             time.sleep(pause)
     return results
 
@@ -34,7 +38,8 @@ def load_run(path):
         return [json.loads(line) for line in f if line.strip()]
 
 
-def run_many(ask_for_run, items, which, n_runs, results_dir, pause=0.0, log=print):
+def run_many(ask_for_run, items, which, n_runs, results_dir, pause=0.0, log=print,
+             progress=None):
     """Do n_runs runs, skipping any run whose file is already complete.
 
     ask_for_run(run) returns the ask function for that run (so a fake model
@@ -47,5 +52,5 @@ def run_many(ask_for_run, items, which, n_runs, results_dir, pause=0.0, log=prin
             log(f"run {run}: already complete, skipping")
             runs.append(load_run(out))
             continue
-        runs.append(run_and_save(ask_for_run(run), items, out, pause))
+        runs.append(run_and_save(ask_for_run(run), items, out, pause, progress))
     return runs

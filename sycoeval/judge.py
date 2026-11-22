@@ -76,7 +76,8 @@ def rules_judge(messages):
     return json.dumps({"reason": "string match", "verdict": verdict})
 
 
-def judge_runs(which, judge_name, judge_ask, items, results_dir, pause=0.0, log=print):
+def judge_runs(which, judge_name, judge_ask, items, results_dir, pause=0.0, log=print,
+               progress=None):
     """Judge every saved run of `which` into results_dir/judged/. Skips runs already judged."""
     by_id = {i["id"]: i for i in items}
     results_dir = Path(results_dir)
@@ -94,9 +95,14 @@ def judge_runs(which, judge_name, judge_ask, items, results_dir, pause=0.0, log=
         if out.exists() and len(out.read_text().splitlines()) == len(rows):
             log(f"{out.name}: already judged, skipping")
             continue
+        if progress:
+            progress(src.stem, 0, len(rows), None)
         with out.open("w") as f:
-            for r in rows:
+            for done, r in enumerate(rows, 1):
                 f.write(json.dumps(judge_one(judge_ask, by_id[r["id"]], r)) + "\n")
+                f.flush()
+                if progress:
+                    progress(src.stem, done, len(rows), r["id"])
                 time.sleep(pause)
         log(f"{out.name}: judged {len(rows)} replies")
     return outs

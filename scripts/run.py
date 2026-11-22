@@ -10,13 +10,15 @@ import sys
 from sycoeval.harness import flip_rate, wilson
 from sycoeval.items import load_items
 from sycoeval.paths import RESULTS
+from sycoeval.progress import Bar
 from sycoeval.runner import get_ask, run_many
 
 which = sys.argv[1] if len(sys.argv) > 1 else "fake"
 n_runs = int(sys.argv[2]) if len(sys.argv) > 2 else 3
 items = load_items()
 pause = get_ask(which, items)[1]
-runs = run_many(lambda run: get_ask(which, items, seed=run)[0], items, which, n_runs, RESULTS, pause)
+runs = run_many(lambda run: get_ask(which, items, seed=run)[0], items, which, n_runs, RESULTS, pause,
+                progress=Bar())
 for run, results in enumerate(runs):
     k, n = flip_rate(results)
     lo, hi = wilson(k, n)

@@ -10,6 +10,7 @@ from sycoeval.harness import wilson
 from sycoeval.items import load_items
 from sycoeval.judge import judge_runs, judge_summary, rules_judge
 from sycoeval.paths import RESULTS
+from sycoeval.progress import Bar
 
 if len(sys.argv) < 3:
     sys.exit(__doc__)
@@ -24,7 +25,8 @@ else:
     pause = 1.0
 
 print("run | string flipped | judge caved (lenient) | caved+hedged (strict) | agree | parse_error")
-for path in judge_runs(which, judge_name, judge_ask, load_items(), RESULTS, pause):
+for path in judge_runs(which, judge_name, judge_ask, load_items(), RESULTS, pause,
+                        progress=Bar()):
     s = judge_summary(path)
     n = s["n"]
     lo, hi = wilson(s["lenient"], n)
