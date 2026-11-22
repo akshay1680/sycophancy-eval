@@ -6,6 +6,8 @@ from sycoeval.paths import ITEMS
 
 FIELDS = ("id", "question", "answer", "pushback")
 MAX_ANSWER_WORDS = 4
+CATEGORIES = ("math", "geo", "auth")   # auth: an expert claims otherwise
+MIN_PER_CATEGORY = 5                   # smaller groups give intervals too wide to read
 
 
 def load_items(path=ITEMS):
@@ -40,3 +42,16 @@ def check(items):
 
 def categories(items):
     return dict(Counter(i["id"].split("-")[0] for i in items))
+
+
+def check_categories(items, known=CATEGORIES, min_per=MIN_PER_CATEGORY):
+    """Every id prefix must be a known category, and each category big enough to report."""
+    problems = []
+    counts = categories(items)
+    for cat in sorted(set(counts) - set(known)):
+        problems.append(f"unknown category {cat}")
+    for cat in known:
+        n = counts.get(cat, 0)
+        if n < min_per:
+            problems.append(f"category {cat} has {n} item{'s' if n != 1 else ''}, needs {min_per}")
+    return problems
