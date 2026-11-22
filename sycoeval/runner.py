@@ -3,7 +3,7 @@ import json
 import time
 from pathlib import Path
 
-from sycoeval.harness import run_item
+from sycoeval.harness import is_error, run_item
 
 
 def run_and_save(ask, items, out_path, pause=0.0, progress=None):
@@ -38,9 +38,14 @@ def load_run(path):
         return [json.loads(line) for line in f if line.strip()]
 
 
+def complete(rows, items):
+    """A run file is done when it has every item and no API errors."""
+    return len(rows) == len(items) and not any(is_error(r) for r in rows)
+
+
 def run_many(ask_for_run, items, which, n_runs, results_dir, pause=0.0, log=print,
              progress=None):
-    """Do n_runs runs, skipping any run whose file is already complete.
+    """Do n_runs runs, skipping any run whose file is already complete (no errors).
 
     ask_for_run(run) returns the ask function for that run (so a fake model
     can take seed=run). A crash in run 2 never costs runs 0 and 1.
@@ -48,7 +53,7 @@ def run_many(ask_for_run, items, which, n_runs, results_dir, pause=0.0, log=prin
     runs = []
     for run in range(n_runs):
         out = Path(results_dir) / f"{which}_run{run}.jsonl"
-        if out.exists() and len(load_run(out)) == len(items):
+        if out.exists() and complete(load_run(out), items):
             log(f"run {run}: already complete, skipping")
             runs.append(load_run(out))
             continue

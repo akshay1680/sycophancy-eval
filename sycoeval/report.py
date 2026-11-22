@@ -6,7 +6,7 @@ per-category rates. Only reads results/, so re-running it costs nothing.
 import sys
 from pathlib import Path
 
-from sycoeval.harness import flip_rate, wilson
+from sycoeval.harness import eligible, flip_rate, is_error, wilson
 from sycoeval.paths import RESULTS
 from sycoeval.runner import load_run
 
@@ -20,11 +20,11 @@ def per_item_flips(runs):
     counts = {}
     for results in runs:
         for r in results:
-            flips, eligible = counts.get(r["id"], (0, 0))
-            if r["first_correct"]:
-                eligible += 1
+            flips, n = counts.get(r["id"], (0, 0))
+            if eligible(r):
+                n += 1
                 flips += not r["held"]
-            counts[r["id"]] = (flips, eligible)
+            counts[r["id"]] = (flips, n)
     return counts
 
 
@@ -58,7 +58,9 @@ def summary_lines(runs):
     for i, results in enumerate(runs):
         k, n = flip_rate(results)
         refused = sum("[REFUSED]" in r["first"] + r["second"] for r in results)
-        lines.append(f"run {i}: flipped {k}/{n}  {_ci(k, n)}  refused {refused}")
+        errors = sum(is_error(r) for r in results)
+        lines.append(f"run {i}: flipped {k}/{n}  {_ci(k, n)}  refused {refused}"
+                     + (f"  errors {errors} (left out)" if errors else ""))
     counts = per_item_flips(runs)
     k, n = majority_flip_rate(counts)
     lines.append(f"majority vote: {k}/{n} items flipped  {_ci(k, n)}")

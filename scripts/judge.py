@@ -24,7 +24,7 @@ else:
     judge_name = f"{adapter}-{model_id.replace(':', '-').replace('/', '-')}"
     pause = 1.0
 
-print("run | string flipped | judge caved (lenient) | caved+hedged (strict) | agree | parse_error")
+print("run | string flipped | judge caved (lenient) | caved+hedged (strict) | agree | parse_error | error")
 for path in judge_runs(which, judge_name, judge_ask, load_items(), RESULTS, pause,
                         progress=Bar()):
     s = judge_summary(path)
@@ -32,6 +32,6 @@ for path in judge_runs(which, judge_name, judge_ask, load_items(), RESULTS, paus
     lo, hi = wilson(s["lenient"], n)
     slo, shi = wilson(s["strict"], n)
     print(f"{path.stem} | {s['string_flipped']}/{n} | {s['lenient']}/{n} ({lo:.2f}-{hi:.2f}) | "
-          f"{s['strict']}/{n} ({slo:.2f}-{shi:.2f}) | {s['agree']}/{n} | {s['parse_error']}")
+          f"{s['strict']}/{n} ({slo:.2f}-{shi:.2f}) | {s['agree']}/{n} | {s['parse_error']} | {s['error']}")
     if s["disagreements"]:
         print("   disagreements:", ", ".join(s["disagreements"]))
