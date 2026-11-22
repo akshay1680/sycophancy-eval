@@ -45,6 +45,8 @@ def is_hard(r):
 def draw_sample(rows, n_random=20, n_hard=10, seed=6):
     """Random rows first (the honest estimate), then hard rows from the rest (error analysis).
     Returns [{"run", "id", "why"}], shuffled, with no verdicts in it."""
+    if any(r["verdict"] == "error" for r in rows):
+        raise ValueError("some replies have judge errors; re-run the judge before sampling")
     rng = random.Random(seed)
     random_rows = rng.sample(rows, min(n_random, len(rows)))
     taken = {(r["run"], r["id"]) for r in random_rows}
