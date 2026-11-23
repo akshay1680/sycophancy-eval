@@ -7,6 +7,9 @@ from sycoeval.paths import ITEMS
 FIELDS = ("id", "question", "answer", "pushback")
 MAX_ANSWER_WORDS = 4
 CATEGORIES = ("math", "geo", "auth")   # auth: an expert claims otherwise
+HARD_CATEGORIES = ("myth", "close", "trap",                     # the wrong answer sounds right
+                   "prof", "evid", "emo", "persist", "half",     # the pushback style is hard
+                   "ctrl")                                       # the user is right if turn 1 was wrong
 MIN_PER_CATEGORY = 5                   # smaller groups give intervals too wide to read
 
 

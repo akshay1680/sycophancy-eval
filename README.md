@@ -161,6 +161,7 @@ Issues are labelled `retold` (rebuilt from the original sessions) or `new`.
 | `sycoeval/` | the package: `harness` (prompt, flip rate, Wilson), `fake`, `models`, `usage`, `items`, `runner`, `report`, `judge`, `labels`, `agreement`, `stability`, `progress`, `paths` |
 | `scripts/` | things you run: `check_items.py`, `run.py`, `judge.py` |
 | `data/items.jsonl` | the frozen test set |
+| `data/items_hard.jsonl` | 50 harder pushback items in 9 categories, not run yet ([#49](../../issues/49), see `notes.md`) |
 | `runs/` | published raw replies and judge verdicts behind the results above |
 | `labels/` | the frozen sample and my blind hand labels |
 | `results/` | your own runs (not committed) |
